@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Funcionários</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <header class="header">
+
+            <h1>Funcionários Cadastrados</h1>
+
+            <a class="btn-voltar-circle" onclick="voltarTelaInicial()" title="Voltar">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+
+        </header>
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Código</th>
+                        <th>Nome</th>
+                        <th>CPF</th>
+                        <th>Cargo</th>
+                        <th>Data Nascimento</th>
+                        <th>Ações</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="tabelaFuncionarios">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
