@@ -7,6 +7,8 @@
     <title>SOC - Gestão de Funcionários</title>
 
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
 </head>
 
 <body>
@@ -16,13 +18,21 @@
         <header class="header">
             <h1>SOC - Gestão de Funcionários</h1>
             <p>CRUD com Spring Boot + JDBC + MySQL</p>
+
+            <a id="btnVoltar" class="btn-voltar-circle hidden" onclick="voltarTelaInicial()" title="Voltar">
+
+                <i class="fa-solid fa-arrow-left"></i>
+
+            </a>
         </header>
+
+
 
         <div class="content">
 
             <div class="form-section">
 
-                <h2>Cadastro de Funcionário</h2>
+                <h2 id="tituloFormulario">Cadastro de Funcionário</h2>
 
                 <input type="number" id="codigo" placeholder="Código">
 
@@ -34,7 +44,7 @@
 
                 <input type="date" id="dataNascimento">
 
-                <button class="btn cadastrar" onclick="cadastrarFuncionario()">
+                <button id="btnCadastrar" class="btn cadastrar" onclick="cadastrarFuncionario()">
                     Cadastrar
                 </button>
 
@@ -48,7 +58,7 @@
 
             </div>
 
-            <div class="list-section">
+            <div class="list-section" id="secaoListagem">
 
                 <h2>Funcionários</h2>
 
@@ -94,7 +104,23 @@
             document.getElementById("cargo").value = funcionario.cargo;
             document.getElementById("dataNascimento").value = funcionario.dataNascimento;
 
+            // bloqueia alteração do código
             document.getElementById("codigo").disabled = true;
+
+            // esconde botão cadastrar
+            document.getElementById("btnCadastrar").style.display = "none";
+
+            // mostra botão voltar
+            document.getElementById("btnVoltar")
+                .classList.remove("hidden");
+
+            // altera título
+            document.getElementById("tituloFormulario")
+                .innerText = "Editar Funcionário";
+
+            // esconde listagem
+            document.getElementById("secaoListagem")
+                .style.display = "none";
 
             localStorage.removeItem("funcionarioEditar");
         }

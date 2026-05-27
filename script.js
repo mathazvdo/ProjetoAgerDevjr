@@ -1,5 +1,18 @@
 const API_URL = "http://localhost:8080/funcionarios";
 
+async function tratarRespostaErro(response) {
+
+    if (!response.ok) {
+
+        const {
+            message
+        } = await response.json();
+
+        throw new Error(message);
+    }
+}
+
+
 async function listarFuncionarios() {
 
     mostrarLoader();
@@ -10,14 +23,15 @@ async function listarFuncionarios() {
 
         const response = await fetch(API_URL);
 
+         await tratarRespostaErro(response);
+
         const funcionarios = await response.json();
 
         mostrarFuncionarios(funcionarios);
 
     } catch (error) {
 
-        alert("Erro ao buscar funcionários");
-        console.error(error);
+        mostrarMensagemErro(error.message);
 
     } finally {
 
@@ -25,17 +39,17 @@ async function listarFuncionarios() {
     }
 }
 
-async function abrirTelaFuncionarios() {
+function abrirTelaFuncionarios() {
     window.location.href = "funcionarios.html";
 }
 
 
-async function mostrarLoader() {
+function mostrarLoader() {
     const loader = document.getElementById("loader");
     loader.classList.remove("hidden");
 }
 
-async function esconderLoader() {
+function esconderLoader() {
     const loader = document.getElementById("loader");
     loader.classList.add("hidden");
 }
@@ -53,10 +67,7 @@ async function buscarFuncionario() {
 
         const response = await fetch(`${API_URL}/${codigo}`);
 
-        if (!response.ok) {
-            alert("Funcionário não encontrado");
-            return;
-        }
+        await tratarRespostaErro(response);
 
         const funcionario = await response.json();
 
@@ -64,14 +75,17 @@ async function buscarFuncionario() {
 
     } catch (error) {
 
-        alert("Funcionário não encontrado");
-        console.error(error);
+        mostrarMensagemErro(error.message);
+        
     }
 }
 
 async function cadastrarFuncionario() {
 
     const funcionario = pegarDadosFormulario();
+    console.log("testeee");
+    validarFormulario(funcionario);
+    
 
     try {
 
@@ -83,24 +97,28 @@ async function cadastrarFuncionario() {
             body: JSON.stringify(funcionario)
         });
 
-        if (!response.ok) {
-            throw new Error();
-        }
+        await tratarRespostaErro(response);
 
-        alert("Funcionário cadastrado com sucesso");
+
+        const sucesso = await response.json();
+
+        mostrarMensagemSucesso(sucesso.message);
 
         limparCampos();
 
     } catch (error) {
 
-        alert("Erro ao cadastrar funcionário");
+        mostrarMensagemErro(error.message);
+
         console.error(error);
     }
 }
 
 async function atualizarFuncionario() {
 
+    
     const funcionario = pegarDadosFormulario();
+    validarFormulario(funcionario);
 
     if (!funcionario.codigo) {
         alert("Informe o código");
@@ -118,17 +136,19 @@ async function atualizarFuncionario() {
         });
 
         if (!response.ok) {
-            throw new Error();
+            await tratarRespostaErro(response);
         }
 
-        alert("Funcionário atualizado com sucesso");
+        const sucesso = await response.json();
+
+        mostrarMensagemSucesso(sucesso.message);
 
         limparCampos();
 
     } catch (error) {
-
-        alert("Erro ao atualizar funcionário");
+        mostrarMensagemErro(error.message);
         console.error(error);
+
     }
 }
 
@@ -147,7 +167,7 @@ async function excluirFuncionario(codigo) {
         });
 
         if (!response.ok) {
-            throw new Error();
+            await tratarRespostaErro(response);
         }
 
         alert("Funcionário excluído com sucesso");
@@ -163,7 +183,7 @@ async function excluirFuncionario(codigo) {
 
     } catch (error) {
 
-        alert("Erro ao excluir funcionário");
+        alert(error.message);
         console.error(error);
     }
 }
@@ -218,6 +238,7 @@ function editarFuncionario(funcionario) {
     document.getElementById("dataNascimento").value = funcionario.dataNascimento;
 
     document.getElementById("codigo").disabled = true;
+    document.getElementById("btnCadastrar").classList.add("hidden");
 }
 
 function limparCampos() {
@@ -228,13 +249,18 @@ function limparCampos() {
     document.getElementById("cargo").value = "";
     document.getElementById("dataNascimento").value = "";
 
-    document.getElementById("codigo").disabled = false;
+    const possuiEdicao =
+        localStorage.getItem("funcionarioEditar");
+
+    if (!possuiEdicao) {
+        document.getElementById("codigo").disabled = false;
+    }
 }
 
 function pegarDadosFormulario() {
 
     return {
-        codigo: document.getElementById("codigo").value,
+        codigo: Number(document.getElementById("codigo").value) || null,
         nome: document.getElementById("nome").value,
         cpf: document.getElementById("cpf").value,
         cargo: document.getElementById("cargo").value,
@@ -306,7 +332,7 @@ async function carregarTabelaFuncionarios() {
 
     } catch (error) {
 
-        alert("Erro ao carregar funcionários");
+        alert(error.message);
         console.error(error);
 
     } finally {
@@ -331,4 +357,99 @@ function editarDaTabela(funcionario) {
 
 if (window.location.pathname.includes("funcionarios.html")) {
     carregarTabelaFuncionarios();
+}
+
+function adicionarErroCampo(idCampo, mensagem) {
+
+    const campo = document.getElementById(idCampo);
+
+    campo.classList.add("input-erro");
+
+    const erroExistente = campo.nextElementSibling;
+
+    if (
+        erroExistente &&
+        erroExistente.classList.contains("mensagem-erro")
+    ) {
+        erroExistente.remove();
+    }
+
+    const mensagemErro = document.createElement("div");
+
+    mensagemErro.classList.add("mensagem-erro");
+
+    mensagemErro.innerText = mensagem;
+
+    campo.insertAdjacentElement("afterend", mensagemErro);
+}
+
+function limparErrosFormulario() {
+
+    document.querySelectorAll(".input-erro")
+        .forEach(campo => {
+            campo.classList.remove("input-erro");
+        });
+
+    document.querySelectorAll(".mensagem-erro")
+        .forEach(erro => erro.remove());
+}
+
+function validarFormulario(funcionario) {
+
+    limparErrosFormulario();
+
+    let possuiErro = false;
+
+    if (!funcionario.nome.trim()) {
+
+        adicionarErroCampo(
+            "nome",
+            "Informe o nome do funcionário."
+        );
+
+        possuiErro = true;
+    }
+
+    if (!funcionario.cpf.trim()) {
+
+        adicionarErroCampo(
+            "cpf",
+            "Informe o CPF do funcionário."
+        );
+
+        possuiErro = true;
+    }
+
+    if (!funcionario.cargo.trim()) {
+
+        adicionarErroCampo(
+            "cargo",
+            "Informe o cargo do funcionário."
+        );
+
+        possuiErro = true;
+    }
+
+    if (!funcionario.dataNascimento) {
+
+        adicionarErroCampo(
+            "dataNascimento",
+            "Informe a data de nascimento."
+        );
+
+        possuiErro = true;
+    }
+
+    if (possuiErro) {
+        throw new Error(
+            "Preencha os campos obrigatórios."
+        );
+    }
+}
+function mostrarMensagemSucesso(mensagem) {
+    alert(mensagem);
+}
+
+function mostrarMensagemErro(mensagem) {
+    alert(mensagem);
 }
